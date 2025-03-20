@@ -1,1 +1,20 @@
-
+            - name: deploy-worker
+  # You may pin to the exact commit or the version.
+  # uses: drivly/deploy-worker@e2642a843ce96d086edefb0ba45bbc37222740e2
+  uses: drivly/deploy-worker@beta-3
+  with:
+    # The name of the worker
+    name: # optional
+    # The custom domain name for the worker
+    domain: # optional
+    # The main entry point
+    main: # optional, default is ./worker.js
+    # Your Cloudflare Account ID
+    cloudflareAccountId: # optional, default is 
+    # Your Cloudflare API Token
+    cloudflareApiToken: # optional, default is 
+    # The name of the config file
+    config: # optional, default is 
+    # The build output file
+    outfile: # optional, default is ./dist/index.js
+          

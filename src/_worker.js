@@ -4,12 +4,44 @@
 async function handleRequest(request) {
   const url = new URL(request.url);
   
-  const basePath = "/mycustom-path"; // Define your custom base path here
+  const basePath = "/Sub2JSON"; // Define your custom base path here
+  const homePath = "/convert"; // Define home path here
   const sub = url.searchParams.get("sub") || 'https://example.com/sub'; // subscription URL
   
   // Check if the request path matches the custom base path
-  if (url.pathname !== basePath) {
-    return new Response("Hello World!", {
+  if (url.pathname == homePath) {
+    const html = `
+      <!DOCTYPE html>
+      <html lang="en">
+      <head>
+        <meta charset="UTF-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <title>V2Ray Sub2JSON Worker</title>
+        <style>
+          body { font-family: Arial, sans-serif; max-width: 600px; margin: 50px auto; text-align: center; }
+          input[type="text"] { width: 80%; padding: 8px; margin: 10px 0; }
+          input[type="submit"] { padding: 10px 20px; background-color: #007bff; color: white; border: none; cursor: pointer; }
+          input[type="submit"]:hover { background-color: #0056b3; }
+        </style>
+      </head>
+      <body>
+        <h1>V2Ray Sub2JSON Worker</h1>
+        <p>Enter your V2Ray subscription URL below:</p>
+        <form action="${basePath}" method="GET">
+          <input type="text" name="sub" placeholder="e.g., https://your-sub-url.com/v2ray.txt" required>
+          <br>
+          <input type="submit" value="Convert">
+        </form>
+      </body>
+      </html>
+    `;
+    return new Response(html, {
+      status: 200,
+      headers: { 'Content-Type': 'text/html' }
+    });
+  } 
+  else if (url.pathname !== basePath) {
+      return new Response("Hello World!", {
       status: 200,
       headers: { 'Content-Type': 'text/plain' }
     });

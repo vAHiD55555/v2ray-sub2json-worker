@@ -488,7 +488,7 @@ const configTemplate = {
       { "type": "field", "outboundTag": "direct", "protocol": ["bittorrent"] },
       { "type": "field", "outboundTag": "direct", "ip": ["geoip:private"] },
       { "type": "field", "outboundTag": "direct", "domain": ["geosite:private"] },
-      { "type": "field", "outboundTag": "direct", "domain": ["geosite:ir"] },
+      { "type": "field", "outboundTag": "direct", "domain": ["geosite:category-ir"] },
       { "type": "field", "outboundTag": "direct", "ip": ["geoip:ir"] },
       {
         "type": "field",

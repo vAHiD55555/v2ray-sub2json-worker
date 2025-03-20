@@ -1,5 +1,5 @@
 #:schema node_modules/wrangler/config-schema.json
-name = "v2ray-sub2json-worker "
+name = "v2ray-sub2json"
 main = "src/_worker.js"
 compatibility_date = "2025-03-20"
 compatibility_flags = ["nodejs_compat"]

@@ -12,26 +12,234 @@ async function handleRequest(request) {
   if (url.pathname == homePath) {
     const html = `
       <!DOCTYPE html>
-      <html lang="en">
+      <html lang="fa" dir="rtl"> <!-- Default to RTL for Persian -->
       <head>
         <meta charset="UTF-8">
         <meta name="viewport" content="width=device-width, initial-scale=1.0">
         <title>V2Ray Sub2JSON Worker</title>
         <style>
-          body { font-family: Arial, sans-serif; max-width: 600px; margin: 50px auto; text-align: center; }
-          input[type="text"] { width: 80%; padding: 8px; margin: 10px 0; }
-          input[type="submit"] { padding: 10px 20px; background-color: #007bff; color: white; border: none; cursor: pointer; }
-          input[type="submit"]:hover { background-color: #0056b3; }
+          /* General Styles */
+          body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background-color: #f4f4f9;
+            color: #333;
+            margin: 0;
+            padding: 0;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+          }
+      
+          .container {
+            background: #fff;
+            padding: 2rem;
+            border-radius: 12px;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+            max-width: 500px;
+            width: 100%;
+            text-align: center;
+          }
+      
+          h1 {
+            font-size: 1.8rem;
+            margin-bottom: 1.5rem;
+            color: #007bff;
+          }
+      
+          p {
+            font-size: 1rem;
+            margin-bottom: 1.5rem;
+            color: #555;
+          }
+      
+          /* Form Styles */
+          form {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+          }
+      
+          input[type="text"] {
+            width: 100%;
+            padding: 12px;
+            margin-bottom: 1rem;
+            border: 1px solid #ddd;
+            border-radius: 8px;
+            font-size: 1rem;
+            transition: border-color 0.3s ease;
+          }
+      
+          input[type="text"]:focus {
+            border-color: #007bff;
+            outline: none;
+          }
+      
+          .button-container {
+            display: flex;
+            justify-content: center;
+            gap: 10px; /* Space between buttons */
+            width: 100%;
+          }
+      
+          input[type="button"],
+          input[type="submit"] {
+            padding: 12px 24px;
+            border: none;
+            border-radius: 8px;
+            font-size: 1rem;
+            cursor: pointer;
+            transition: background-color 0.3s ease, transform 0.2s ease;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+          }
+      
+          input[type="button"] {
+            background-color: #28a745;
+            color: white;
+          }
+      
+          input[type="button"]:hover {
+            background-color: #218838;
+            transform: translateY(-2px);
+          }
+      
+          input[type="submit"] {
+            background-color: #007bff;
+            color: white;
+          }
+      
+          input[type="submit"]:hover {
+            background-color: #0056b3;
+            transform: translateY(-2px);
+          }
+      
+          /* Language Toggle Button */
+          .lang-toggle {
+            position: absolute;
+            top: 20px;
+            right: 20px;
+            padding: 10px 20px;
+            border: none;
+            border-radius: 8px;
+            background-color: #6c757d;
+            color: white;
+            font-size: 1rem;
+            cursor: pointer;
+            transition: background-color 0.3s ease, transform 0.2s ease;
+          }
+      
+          .lang-toggle:hover {
+            background-color: #5a6268;
+            transform: translateY(-2px);
+          }
+      
+          /* RTL-specific adjustments */
+          html[dir="rtl"] .lang-toggle {
+            right: auto;
+            left: 20px;
+          }
+      
+          /* Responsive Design */
+          @media (max-width: 600px) {
+            .container {
+              padding: 1.5rem;
+            }
+      
+            h1 {
+              font-size: 1.5rem;
+            }
+      
+            input[type="text"] {
+              font-size: 0.9rem;
+            }
+      
+            input[type="button"],
+            input[type="submit"] {
+              font-size: 0.9rem;
+              padding: 10px 20px;
+            }
+          }
         </style>
       </head>
       <body>
-        <h1>V2Ray Sub2JSON Worker</h1>
-        <p>Enter your V2Ray subscription URL below:</p>
-        <form action="${basePath}" method="GET">
-          <input type="text" name="sub" placeholder="e.g., https://your-sub-url.com/v2ray.txt" required>
-          <br>
-          <input type="submit" value="Convert">
-        </form>
+        <button class="lang-toggle" onclick="toggleLanguage()">English</button>
+        <div class="container">
+          <h1 id="title">Worker V2Ray Sub2JSON</h1>
+          <p id="instruction">لینک اشتراک V2Ray خود را وارد کنید:</p>
+          <form action="${basePath}" method="GET">
+            <input type="text" name="sub" id="sub" placeholder="مثال: https://your-sub-url.com/v2ray.txt" required>
+            <div class="button-container">
+              <input type="button" class="convert-input" value="تبدیل و کپی" onclick="copyToClipboard()">
+              <input type="submit" class="submit-input" value="باز کردن">
+            </div>
+          </form>
+        </div>
+      
+        <script>
+          const translations = {
+            en: {
+              title: "V2Ray Sub2JSON Worker",
+              instruction: "Enter your V2Ray subscription URL below:",
+              convertButton: "Convert & Copy",
+              submitButton: "Open",
+              placeholder: "e.g., https://your-sub-url.com/v2ray.txt",
+              error: "Error! Please enter your V2Ray subscription URL!",
+              copied: "Converted URL copied to clipboard: "
+            },
+            fa: {
+              title: "V2Ray Sub2JSON Worker",
+              instruction: "لینک اشتراک V2Ray خود را وارد کنید:",
+              convertButton: "تبدیل و کپی",
+              submitButton: "باز کردن",
+              placeholder: "مثال: https://your-sub-url.com/v2ray.txt",
+              error: "خطا! لطفا لینک اشتراک V2Ray خود را وارد کنید!",
+              copied: "لینک تبدیل شده در کلیپ‌بورد کپی شد: "
+            }
+          };
+      
+          let currentLang = 'fa'; // Set Persian as the default language
+      
+          function toggleLanguage() {
+            currentLang = currentLang === 'en' ? 'fa' : 'en';
+            updateLanguage();
+          }
+      
+          function updateLanguage() {
+            // Update text content
+            document.getElementById('title').textContent = translations[currentLang].title;
+            document.getElementById('instruction').textContent = translations[currentLang].instruction;
+            document.querySelector('.convert-input').value = translations[currentLang].convertButton;
+            document.querySelector('.submit-input').value = translations[currentLang].submitButton;
+            document.getElementById('sub').placeholder = translations[currentLang].placeholder;
+            document.querySelector('.lang-toggle').textContent = currentLang === 'en' ? 'فارسی' : 'English';
+      
+            // Update page direction
+            document.documentElement.dir = currentLang === 'fa' ? 'rtl' : 'ltr';
+          }
+      
+          function copyToClipboard() {
+            const subInput = document.getElementById('sub');
+            if(!subInput.value){
+              alert(translations[currentLang].error);
+              return false;
+            }
+            const url = window.location.origin + "${basePath}?sub=" + encodeURIComponent(subInput.value);
+            
+            const tempTextArea = document.createElement('textarea');
+            tempTextArea.value = url;
+            document.body.appendChild(tempTextArea);
+            tempTextArea.select();
+            document.execCommand('copy');
+            document.body.removeChild(tempTextArea);
+            
+            alert(translations[currentLang].copied + url);
+          }
+      
+          // Initialize the page with the default language
+          updateLanguage();
+        </script>
       </body>
       </html>
     `;

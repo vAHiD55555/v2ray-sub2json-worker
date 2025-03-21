@@ -321,7 +321,7 @@ async function convert(data) {
 
 
 const configTemplate = {
-  "remarks": "Sub-To-Load-Balancer",
+  "remarks": "v2ray-sub2json-worker",
   "log": {
     "access": "",
     "error": "",

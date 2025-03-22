@@ -326,8 +326,11 @@ function parseUriParams(uri) {
 
 // Helper to decode VMess URI
 function decodeVmessUri(uri) {
-  const encoded = uri.split("://")[1];
-  return JSON.parse(atob(encoded));
+  const encoded = uri.split("://")[1].replace(/[^A-Za-z0-9+/=]/g, '');
+  if(isBase64(encoded)){
+      return JSON.parse(atob(encoded));
+  }
+  return false;
 }
 
 // Helper to build stream settings
@@ -412,6 +415,7 @@ function convertUriJson(uri, host = "127.0.0.1", port = 10809, socksport = 10808
   let params, network;
   if (isVmess) {
     const decoded = decodeVmessUri(uri);
+    if (!decoded) return false;
     const url = new URL(`vmess://${decoded.id}@${decoded.add}:${decoded.port}`);
     params = { ...parseUriParams(url.href), ...decoded, type: decoded.net };
     network = decoded.net;

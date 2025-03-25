@@ -451,6 +451,7 @@ function convertUriJson(uri, host = "127.0.0.1", port = 10809, socksport = 10808
     params = { ...parseUriParams(url.href), ...decoded, type: decoded.net };
     network = decoded.net;
   } else if (isShadowsocks) {
+    if((uri.split('@').length - 1) != 1) return false
     const url = new URL(`shadowsocks://${decodeBase64(uri.split("://")[1].split("@")[0])}@${uri.split("@")[1]}`);
     params = parseUriParams(url, isShadowsocks);
     network = params.type == "" ? "tcp" : params.type;

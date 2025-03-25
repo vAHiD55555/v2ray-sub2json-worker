@@ -298,14 +298,15 @@ function generateInbounds(host = "127.0.0.1", port = 10809, socksport = 10808) {
 }
 
 // Helper to parse URI parameters efficiently
-function parseUriParams(uri) {
+function parseUriParams(uri, isShadowsocks = false) {
   const url = new URL(uri);
   const params = new URLSearchParams(url.search);
   const getParam = (key, defaultValue = "") => params.get(key) || defaultValue;
   return {
     protocol: url.protocol.slice(0, -1),
     uid: url.username || url.pathname.split("@")[0],
-    password: url.username,
+    password: isShadowsocks ? url.password : url.username,
+    method: isShadowsocks ? url.username : "chacha20",
     address: url.hostname,
     port: parseInt(url.port, 10),
     type: getParam("type"),
@@ -326,17 +327,46 @@ function parseUriParams(uri) {
 
 // Helper to decode VMess URI
 function decodeVmessUri(uri) {
-  const encoded = uri.split("://")[1].replace(/[^A-Za-z0-9+/=]/g, '');
-  if(isBase64(encoded)){
-      return JSON.parse(atob(encoded));
+  const encoded = uri.split("://")[1];
+  return JSON.parse(decodeBase64(encoded));
+}
+
+
+function decodeBase64(str) {
+  const base64Chars = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/";
+  let result = "";
+  
+  // Clean the string: remove anything not in the base64 alphabet or padding
+  const cleanStr = str.replace(/[^A-Za-z0-9+/=]/g, '');
+  
+  // Pad to a multiple of 4 if needed
+  const paddingNeeded = (4 - (cleanStr.length % 4)) % 4;
+  const paddedStr = cleanStr + "=".repeat(paddingNeeded);
+  
+  // Manual decoding
+  let buffer = 0, bits = 0;
+  for (let i = 0; i < paddedStr.length; i++) {
+    if (paddedStr[i] === "=") break; // Stop at padding
+    const value = base64Chars.indexOf(paddedStr[i]);
+    if (value === -1) continue; // Skip any remaining invalid chars
+    
+    buffer = (buffer << 6) + value;
+    bits += 6;
+    
+    if (bits >= 8) {
+      bits -= 8;
+      const byte = (buffer >> bits) & 0xFF;
+      result += String.fromCharCode(byte);
+    }
   }
-  return false;
+  
+  return result;
 }
 
 // Helper to build stream settings
-function buildStreamSettings(params, isVmess = false) {
+function buildStreamSettings(params) {
   const { type, security, sni, fp, host, path, headertype, serviceName, alpn, pbk, sid, spx } = params;
-  const streamSettings = { network: type };
+  const streamSettings = { network: type  == "" ? "tcp" : type };
 
   if (host && (type === "tcp" || type === "http")) {
     streamSettings.tcpSettings = {
@@ -409,8 +439,9 @@ function convertUriJson(uri, host = "127.0.0.1", port = 10809, socksport = 10808
   const isVless = uri.startsWith("vless://");
   const isVmess = uri.startsWith("vmess://");
   const isTrojan = uri.startsWith("trojan://");
+  const isShadowsocks = uri.startsWith("ss://");
 
-  if (!isVless && !isVmess && !isTrojan) return false;
+  if (!isVless && !isVmess && !isTrojan && !isShadowsocks) return false;
 
   let params, network;
   if (isVmess) {
@@ -419,30 +450,34 @@ function convertUriJson(uri, host = "127.0.0.1", port = 10809, socksport = 10808
     const url = new URL(`vmess://${decoded.id}@${decoded.add}:${decoded.port}`);
     params = { ...parseUriParams(url.href), ...decoded, type: decoded.net };
     network = decoded.net;
+  } else if (isShadowsocks) {
+    const url = new URL(`shadowsocks://${decodeBase64(uri.split("://")[1].split("@")[0])}@${uri.split("@")[1]}`);
+    params = parseUriParams(url, isShadowsocks);
+    network = params.type == "" ? "tcp" : params.type;
   } else {
     params = parseUriParams(uri);
     network = params.type;
   }
 
-  const { protocol, uid, password, address, port: destPort, flow } = params;
+  const { protocol, uid, password, address, port: destPort, flow, method } = params;
 
   const isReality = params.security === "reality";
   const isWs = network === "ws";
   const isTcpOrGrpc = network === "tcp" || network === "grpc";
 
-  if (!((isReality && (isVless || isTrojan)) || isWs || isTcpOrGrpc)) return false;
+  if (!((isReality && (isVmess || isVless || isTrojan)) || isWs || isTcpOrGrpc || isShadowsocks)) return false;
 
   const config = {
     log: { access: "", error: "", loglevel: "warning" },
     outbounds: [
       {
         tag: "proxy",
-        protocol,
-        settings: isTrojan
+        protocol: "ss" ? "shadowsocks": protocol,
+        settings: isTrojan || isShadowsocks
           ? {
               servers: [{
                 address,
-                method: "chacha20",
+                method,
                 ota: false,
                 password,
                 port: destPort,

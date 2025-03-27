@@ -3,11 +3,10 @@
 
 async function handleRequest(request) {
   const url = new URL(request.url);
-  
   const basePath = "/Sub2JSON"; // Define your custom base path here
   const homePath = "/convert"; // Define home path here
   const sub = url.searchParams.get("sub") || 'https://example.com/sub'; // subscription URL
-  
+
   // Check if the request path matches the custom base path
   if (url.pathname == homePath) {
     const html = `
@@ -28,7 +27,7 @@ async function handleRequest(request) {
             display: flex;
             justify-content: center;
             align-items: center;
-            height: 100vh;
+            min-height: 100vh;
           }
       
           .container {
@@ -37,12 +36,28 @@ async function handleRequest(request) {
             border-radius: 12px;
             box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
             max-width: 500px;
-            width: 100%;
+            width: 90%;
             text-align: center;
+          }
+      
+          a {
+            color: inherit;
+            text-decoration: none;
+          }
+      
+          a:hover {
+            text-decoration: underline; /* Subtle hover effect */
           }
       
           h1 {
             font-size: 1.8rem;
+            margin-bottom: 0;
+            color: #007bff;
+          }
+      
+          h2 {
+            font-size: 1.1rem;
+            margin-top: 0;
             margin-bottom: 1.5rem;
             color: #007bff;
           }
@@ -53,32 +68,46 @@ async function handleRequest(request) {
             color: #555;
           }
       
-          /* Form Styles */
+          .footnote {
+            font-size: 0.85rem;
+            color: #666;
+            margin-top: -0.5rem;
+            margin-bottom: 1rem;
+          }
+      
           form {
             display: flex;
             flex-direction: column;
             align-items: center;
           }
       
-          input[type="text"] {
+          textarea {
             width: 100%;
             padding: 12px;
-            margin-bottom: 1rem;
+            margin-bottom: 0.5rem;
             border: 1px solid #ddd;
             border-radius: 8px;
             font-size: 1rem;
             transition: border-color 0.3s ease;
+            resize: vertical;
+            direction: ltr;
+          }
+          
+          textarea::placeholder {
+            color: gray;
+            font-style: italic;
+            font-size: .7rem;
           }
       
-          input[type="text"]:focus {
-            border-color: #007bff;
+          textarea:focus {
+            border-color: #ff7bff;
             outline: none;
           }
       
           .button-container {
             display: flex;
             justify-content: center;
-            gap: 10px; /* Space between buttons */
+            gap: 10px;
             width: 100%;
           }
       
@@ -90,9 +119,6 @@ async function handleRequest(request) {
             font-size: 1rem;
             cursor: pointer;
             transition: background-color 0.3s ease, transform 0.2s ease;
-            display: flex;
-            align-items: center;
-            justify-content: center;
           }
       
           input[type="button"] {
@@ -115,7 +141,6 @@ async function handleRequest(request) {
             transform: translateY(-2px);
           }
       
-          /* Language Toggle Button */
           .lang-toggle {
             position: absolute;
             top: 20px;
@@ -135,13 +160,17 @@ async function handleRequest(request) {
             transform: translateY(-2px);
           }
       
-          /* RTL-specific adjustments */
           html[dir="rtl"] .lang-toggle {
             right: auto;
             left: 20px;
           }
       
-          /* Responsive Design */
+          .footer {
+            font-size: 0.9rem;
+            color: #777;
+            margin-top: 1.5rem;
+          }
+      
           @media (max-width: 600px) {
             .container {
               padding: 1.5rem;
@@ -151,55 +180,66 @@ async function handleRequest(request) {
               font-size: 1.5rem;
             }
       
-            input[type="text"] {
-              font-size: 0.9rem;
-            }
-      
+            textarea,
             input[type="button"],
             input[type="submit"] {
               font-size: 0.9rem;
-              padding: 10px 20px;
             }
           }
         </style>
       </head>
       <body>
-        <button class="lang-toggle" onclick="toggleLanguage()">English</button>
+        <button class="lang-toggle" aria-label="Toggle Language" onclick="toggleLanguage()">English</button>
         <div class="container">
-          <h1 id="title">Worker V2Ray Sub2JSON</h1>
+          <h1 id="title">V2Ray Sub2JSON Worker</h1>
+          <h2 id="subTitle">(تولید ساب جیسون برای <a href="https://github.com/XTLS/Xray-core" target="_blank">هسته XRAY</a>)</h2>
           <p id="instruction">لینک اشتراک V2Ray خود را وارد کنید:</p>
           <form action="${basePath}" method="GET">
-            <input type="text" name="sub" id="sub" placeholder="مثال: https://your-sub-url.com/v2ray.txt" required>
+            <textarea 
+              name="sub" 
+              id="sub"  
+              rows="4" 
+              cols="50" 
+              placeholder="مثال: https://your-sub-url.com/v2ray.txt" 
+              required></textarea>
+            <p class="footnote" id="footnote">(هر کدام در یک خط جداگانه)</p>
             <div class="button-container">
-              <input type="button" class="convert-input" value="تبدیل و کپی" onclick="copyToClipboard()">
-              <input type="submit" class="submit-input" value="باز کردن">
+              <input type="button" class="convert-input" value="تبدیل و کپی" onclick="copyToClipboard()" aria-label="Convert and Copy">
+              <input type="submit" class="submit-input" value="باز کردن" aria-label="Open">
             </div>
           </form>
+          <div class="footer">
+            Source: <a href="https://github.com/mer30hamid/v2ray-sub2json-worker" target="_blank">GitHub Repository</a>
+          </div>
         </div>
       
         <script>
           const translations = {
             en: {
               title: "V2Ray Sub2JSON Worker",
-              instruction: "Enter your V2Ray subscription URL below:",
+              subTitle: "(Generate JSON sub for <a href='https://github.com/XTLS/Xray-core' target='_blank'>XRAY core</a>)",
+              instruction: "Enter your V2Ray subscription link(s) or config(s) below:",
+              footnote: "(each on a separate line)",
               convertButton: "Convert & Copy",
               submitButton: "Open",
               placeholder: "e.g., https://your-sub-url.com/v2ray.txt",
-              error: "Error! Please enter your V2Ray subscription URL!",
+              error: "Error! Please enter something!",
               copied: "Converted URL copied to clipboard: "
             },
             fa: {
               title: "V2Ray Sub2JSON Worker",
-              instruction: "لینک اشتراک V2Ray خود را وارد کنید:",
+              subTitle: "(تولید ساب جیسون برای <a href='https://github.com/XTLS/Xray-core' target='_blank'>هسته XRAY</a>)",
+              instruction: "لینک(های) اشتراک و یا کانفیگ(های) V2Ray خود را وارد کنید:",
+              footnote: "(هر کدام در یک خط جداگانه)",
               convertButton: "تبدیل و کپی",
               submitButton: "باز کردن",
               placeholder: "مثال: https://your-sub-url.com/v2ray.txt",
-              error: "خطا! لطفا لینک اشتراک V2Ray خود را وارد کنید!",
+              error: "خطا! لطفا یک چیزی وارد کنید!",
               copied: "لینک تبدیل شده در کلیپ‌بورد کپی شد: "
             }
           };
       
-          let currentLang = 'fa'; // Set Persian as the default language
+          let currentLang = 'fa'; // Default to Persian
       
           function toggleLanguage() {
             currentLang = currentLang === 'en' ? 'fa' : 'en';
@@ -207,37 +247,33 @@ async function handleRequest(request) {
           }
       
           function updateLanguage() {
-            // Update text content
             document.getElementById('title').textContent = translations[currentLang].title;
-            document.getElementById('instruction').textContent = translations[currentLang].instruction;
+            document.getElementById('subTitle').innerHTML = translations[currentLang].subTitle;
+            document.getElementById('instruction').innerHTML = translations[currentLang].instruction;
+            document.getElementById('footnote').textContent = translations[currentLang].footnote;
             document.querySelector('.convert-input').value = translations[currentLang].convertButton;
             document.querySelector('.submit-input').value = translations[currentLang].submitButton;
             document.getElementById('sub').placeholder = translations[currentLang].placeholder;
             document.querySelector('.lang-toggle').textContent = currentLang === 'en' ? 'فارسی' : 'English';
-      
-            // Update page direction
             document.documentElement.dir = currentLang === 'fa' ? 'rtl' : 'ltr';
           }
       
-          function copyToClipboard() {
+          async function copyToClipboard() {
             const subInput = document.getElementById('sub');
-            if(!subInput.value){
+            if (!subInput.value) {
               alert(translations[currentLang].error);
-              return false;
+              return;
             }
             const url = window.location.origin + "${basePath}?sub=" + encodeURIComponent(subInput.value);
-            
-            const tempTextArea = document.createElement('textarea');
-            tempTextArea.value = url;
-            document.body.appendChild(tempTextArea);
-            tempTextArea.select();
-            document.execCommand('copy');
-            document.body.removeChild(tempTextArea);
-            
-            alert(translations[currentLang].copied + url);
+            try {
+              await navigator.clipboard.writeText(url);
+              alert(translations[currentLang].copied + url);
+            } catch (err) {
+              alert("Failed to copy: " + err);
+            }
           }
       
-          // Initialize the page with the default language
+          // Initialize page
           updateLanguage();
         </script>
       </body>
@@ -247,30 +283,45 @@ async function handleRequest(request) {
       status: 200,
       headers: { 'Content-Type': 'text/html' }
     });
-  } 
-  else if (url.pathname !== basePath) {
-      return new Response("Hello World!", {
+  } else if (url.pathname !== basePath) {
+    return new Response("Hello World!", {
       status: 200,
       headers: { 'Content-Type': 'text/plain' }
     });
   }
 
-  try {
-    const response = await fetch(sub);
-    if (!response.ok) throw new Error(`Fetch failed: ${response.status}`);
-    let data = await response.text();
+  let data = "";
+  const lines = sub.split(/\r\n|\n|\r/).filter(line => line.trim()); // Skip empty lines
 
-    if (isBase64(data)) {
-      data = atob(data);
+  for (const line of lines) {
+    if (isValidUri(line, true)) {
+      data += line + "\n"; // Proxy URI, add directly
+    } else if (isValidUri(line)) {
+      try {
+        const response = await fetch(line);
+        if (!response.ok) {
+          console.error(`Fetch failed for ${line}: ${response.status}`);
+          continue; // Skip failed fetches
+        }
+        const responseText = await response.text();
+        data += isBase64(responseText) ? atob(responseText) : responseText;
+      } catch (error) {
+        console.error(`Error fetching ${line}: ${error.message}`);
+        continue; // Skip fetch errors
+      }
+    } else {
+      console.log(`Skipping invalid line: ${line}`);
     }
+  }
 
+  try {
     const result = await convert(data);
     return new Response(JSON.stringify(result, null, 2), {
       status: 200,
       headers: { 'Content-Type': 'application/json' }
     });
   } catch (error) {
-    console.error('Error:', error.message);
+    console.error('Conversion error:', error.message);
     return new Response(JSON.stringify({ error: error.message }), {
       status: 500,
       headers: { 'Content-Type': 'application/json' }
@@ -331,42 +382,40 @@ function decodeVmessUri(uri) {
   return JSON.parse(decodeBase64(encoded));
 }
 
-
 function decodeBase64(str) {
   const base64Chars = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/";
   let result = "";
-  
+
   // Clean the string: remove anything not in the base64 alphabet or padding
   const cleanStr = str.replace(/[^A-Za-z0-9+/=]/g, '');
-  
+
   // Pad to a multiple of 4 if needed
   const paddingNeeded = (4 - (cleanStr.length % 4)) % 4;
   const paddedStr = cleanStr + "=".repeat(paddingNeeded);
-  
+
   // Manual decoding
   let buffer = 0, bits = 0;
   for (let i = 0; i < paddedStr.length; i++) {
     if (paddedStr[i] === "=") break; // Stop at padding
     const value = base64Chars.indexOf(paddedStr[i]);
     if (value === -1) continue; // Skip any remaining invalid chars
-    
+
     buffer = (buffer << 6) + value;
     bits += 6;
-    
+
     if (bits >= 8) {
       bits -= 8;
       const byte = (buffer >> bits) & 0xFF;
       result += String.fromCharCode(byte);
     }
   }
-  
+
   return result;
 }
-
 // Helper to build stream settings
 function buildStreamSettings(params) {
   const { type, security, sni, fp, host, path, headertype, serviceName, alpn, pbk, sid, spx } = params;
-  const streamSettings = { network: type  == "" ? "tcp" : type };
+  const streamSettings = { network: type == "" ? "tcp" : type };
 
   if (host && (type === "tcp" || type === "http")) {
     streamSettings.tcpSettings = {
@@ -406,8 +455,10 @@ function buildStreamSettings(params) {
     };
   }
 
-  if (security && security !== "none") {
-    streamSettings.security = security;
+  
+  if (security && !security.startsWith("none")) {
+    streamSettings.security = security.startsWith("tls") ? "tls" : security;
+    streamSettings.security = security.startsWith("reality") ? "reality" : security;
     if (security === "reality") {
       streamSettings.realitySettings = {
         serverName: sni,
@@ -426,13 +477,79 @@ function buildStreamSettings(params) {
       };
       if (fp && fp !== "none") streamSettings.tlsSettings.fingerprint = fp;
     }
+  } else {
+    streamSettings.security = "none";
   }
 
   return streamSettings;
 }
 
+
+function isValidShadowsocksUrl4XRAY(uri) {
+  try {
+    if (typeof uri !== 'string') return false;
+    uri = uri.trim();
+    if (!uri) return false;
+    if (!uri.startsWith("ss://")) return false;
+    const protocolCount = (uri.match(/:\/\//g) || []).length;
+    if (protocolCount > 1) return false;
+    const [_, rest] = uri.split("ss://");
+    if (!rest) return false;
+    const [authHost, tag] = rest.split("#");
+    if (!authHost.includes("@")) return false;
+    const [auth, hostPort] = authHost.split("@");
+    if (!auth || !hostPort) return false;
+    let method, password;
+    if (isBase64(auth)) {
+      const decoded = decodeBase64(auth);
+      if (!decoded.includes(":")) return false;
+      [method, password] = decoded.split(":");
+    } else {
+      if (!auth.includes(":")) return false;
+      [method, password] = auth.split(":");
+    }
+    if (!method || !password) return false;
+    
+    /*
+    const validMethods = [
+      "aes-128-gcm", "aes-192-gcm", "aes-256-gcm",
+      "aes-128-cfb", "aes-192-cfb", "aes-256-cfb",
+      "chacha20", "chacha20-ietf", "chacha20-ietf-poly1305",
+      "rc4", "rc4-md5"
+    ];
+    */
+
+    // Supported Shadowsocks methods in Xray
+    const supportedMethodsByXRAY = [
+      "aes-128-gcm",
+      "aes-256-gcm",
+      "chacha20-ietf-poly1305",
+      "xchacha20-ietf-poly1305",
+      "none",
+      "2022-blake3-aes-128-gcm",
+      "2022-blake3-aes-256-gcm",
+      "2022-blake3-chacha20-poly1305"
+    ];
+
+    if (!supportedMethodsByXRAY.includes(method)) {
+    //if (!validMethods.includes(method)) {
+      //console.warn(`Unknown Shadowsocks method: ${method}`); // Optional warning
+      return false;
+    }
+    const [host, port] = hostPort.split(":");
+    if (!host || !port) return false;
+
+    const portNum = parseInt(port, 10);
+    if (isNaN(portNum) || portNum < 1 || portNum > 65535) return false;
+    return true;
+  } catch (e) {
+    console.error(`Error validating Shadowsocks URL: ${e.message}`);
+    return false;
+  }
+}
+
 // Main conversion function
-function convertUriJson(uri, host = "127.0.0.1", port = 10809, socksport = 10808) {
+function convertUriJson(uri, host = "127.0.0.1", httpPort = 10809, socksPort = 10808) {
   if (!uri) return false;
   uri = uri.replace("%2F", "/");
 
@@ -449,20 +566,28 @@ function convertUriJson(uri, host = "127.0.0.1", port = 10809, socksport = 10808
     if (!decoded) return false;
     const url = new URL(`vmess://${decoded.id}@${decoded.add}:${decoded.port}`);
     params = { ...parseUriParams(url.href), ...decoded, type: decoded.net };
+    params.port = parseInt(params.port, 10);
     network = decoded.net;
   } else if (isShadowsocks) {
-    if((uri.split('@').length - 1) != 1) return false
-    const url = new URL(`shadowsocks://${decodeBase64(uri.split("://")[1].split("@")[0])}@${uri.split("@")[1]}`);
-    params = parseUriParams(url, isShadowsocks);
+    if (!isValidShadowsocksUrl4XRAY(uri)) return false
+    const shadowUri = `shadowsocks://${decodeBase64(uri.split("://")[1].split("@")[0])}@${uri.split("@")[1]}`;
+    //if (!isValidUri(url)) return false;
+    params = parseUriParams(shadowUri, isShadowsocks);
     network = params.type == "" ? "tcp" : params.type;
   } else {
     params = parseUriParams(uri);
     network = params.type;
   }
 
-  const { protocol, uid, password, address, port: destPort, flow, method } = params;
+  const { protocol, uid, password, address, port, flow, method } = params;
 
-  const isReality = params.security === "reality";
+  // Validate and ensure port is an integer
+  if (isNaN(port) || port < 1 || port > 65535) {
+    console.error(`Invalid port value: ${port}`);
+    return false;
+  }
+
+  const isReality = params.security.startsWith("reality");
   const isWs = network === "ws";
   const isTcpOrGrpc = network === "tcp" || network === "grpc";
 
@@ -473,33 +598,33 @@ function convertUriJson(uri, host = "127.0.0.1", port = 10809, socksport = 10808
     outbounds: [
       {
         tag: "proxy",
-        protocol: "ss" ? "shadowsocks": protocol,
+        protocol,
         settings: isTrojan || isShadowsocks
           ? {
-              servers: [{
-                address,
-                method,
-                ota: false,
-                password,
-                port: destPort,
-                level: 1,
+            servers: [{
+              address,
+              method,
+              ota: false,
+              password,
+              port,
+              level: 1,
+              flow: flow || ""
+            }]
+          }
+          : {
+            vnext: [{
+              address,
+              port,
+              users: [{
+                id: uid,
+                alterId: 0,
+                email: "t@t.tt",
+                security: "auto",
+                encryption: isVless ? "none" : undefined,
                 flow: flow || ""
               }]
-            }
-          : {
-              vnext: [{
-                address,
-                port: destPort,
-                users: [{
-                  id: uid,
-                  alterId: 0,
-                  email: "t@t.tt",
-                  security: "auto",
-                  encryption: isVless ? "none" : undefined,
-                  flow: flow || ""
-                }]
-              }]
-            },
+            }]
+          },
         streamSettings: buildStreamSettings(params, isVmess),
         mux: { enabled: false, concurrency: -1 }
       },
@@ -507,24 +632,53 @@ function convertUriJson(uri, host = "127.0.0.1", port = 10809, socksport = 10808
     ]
   };
 
-  Object.assign(config, generateInbounds(host, port, socksport));
+  Object.assign(config, generateInbounds(host, httpPort, socksPort));
   return JSON.stringify(config, null, 2);
 }
 
 
+
 function isBase64(str) {
-  if (typeof str !== 'string' || str.length % 4 !== 0) return false;
+  if (typeof str !== 'string') return false;
+  str = str.trim();
+  if (!str) return false;
+
+  // Pad the string if needed
+  const paddingNeeded = (4 - (str.length % 4)) % 4;
+  const paddedStr = str + "=".repeat(paddingNeeded);
+
+  // Check length (should now be multiple of 4)
+  if (paddedStr.length % 4 !== 0) return false;
+
+  // Validate characters
+  const base64Regex = /^[A-Za-z0-9+/=]+$/;
+  if (!base64Regex.test(paddedStr)) return false;
+
+  // Try decoding
   try {
-    atob(str);
+    atob(paddedStr);
     return true;
   } catch (e) {
+    console.error(`Base64 decode error for "${str}": ${e.message}`);
     return false;
   }
 }
 
-function isValidUri(uri) {
+// Test cases
+console.log(isBase64("YWVzLTI1Ni1jZmI6YW1hem9uc2tyMDU")); // true (unpadded)
+console.log(isBase64("YWVzLTI1Ni1jZmI6YW1hem9uc2tyMDU=")); // true (padded)
+console.log(isBase64("invalid!")); // false
+
+function isValidUri(uri, isProxy = false) {
   try {
     new URL(uri);
+    if (isProxy) {
+      const isVless = uri.startsWith("vless://");
+      const isVmess = uri.startsWith("vmess://");
+      const isTrojan = uri.startsWith("trojan://");
+      const isShadowsocks = uri.startsWith("ss://");
+      return (isVless || isVmess || isTrojan || isShadowsocks);
+    }
     return true;
   } catch (e) {
     return false;
@@ -537,7 +691,7 @@ async function convert(data) {
   let proxyCount = 0;
 
   for (const config of data.split('\n')) {
-    if (isValidUri(config)) {
+    if (isValidUri(config, isProxy = true)) {
       const result = convertUriJson(config);
       if (!result) continue;
 

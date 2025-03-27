@@ -247,8 +247,8 @@ async function handleRequest(request) {
               langButton: "فارسی",
               placeholder: "e.g., https://your-sub-url.com/v2ray.txt",
               error: "Error! Please enter something!",
-              copied: "Converted URL copied to clipboard: ",
-              cleared: "Textarea cleared",
+              copied: "Converted URL copied to clipboard ✔",
+              cleared: "Text cleared",
               copyFailed: "Failed to copy: "
             },
             fa: {
@@ -262,7 +262,7 @@ async function handleRequest(request) {
               langButton: "English",
               placeholder: "مثال: https://your-sub-url.com/v2ray.txt",
               error: "خطا! لطفا یک چیزی وارد کنید!",
-              copied: "لینک تبدیل شده در کلیپ‌بورد کپی شد: ",
+              copied: "لینک تبدیل شده در کلیپ‌بورد کپی شد ✔",
               cleared: "متن پاک شد",
               copyFailed: "کپی ناموفق: "
             }
@@ -301,7 +301,7 @@ async function handleRequest(request) {
             const url = window.location.origin + "${basePath}?sub=" + encodeURIComponent(subInput.value);
             try {
               await navigator.clipboard.writeText(url);
-              status.textContent = translations[currentLang].copied + url;
+              status.textContent = translations[currentLang].copied;
               status.className = 'status success';
               setTimeout(() => { status.textContent = ''; status.className = 'status'; }, 3000);
             } catch (err) {

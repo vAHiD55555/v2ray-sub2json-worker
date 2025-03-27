@@ -1,218 +1,239 @@
 // src/_worker.js
-
-
 async function handleRequest(request) {
   const url = new URL(request.url);
   const basePath = "/Sub2JSON"; // Define your custom base path here
   const homePath = "/convert"; // Define home path here
   const sub = url.searchParams.get("sub") || 'https://example.com/sub'; // subscription URL
 
-  // Check if the request path matches the custom base path
-  if (url.pathname == homePath) {
+  if (url.pathname === homePath) {
     const html = `
       <!DOCTYPE html>
-      <html lang="fa" dir="rtl"> <!-- Default to RTL for Persian -->
+      <html lang="fa" dir="rtl">
       <head>
         <meta charset="UTF-8">
         <meta name="viewport" content="width=device-width, initial-scale=1.0">
         <title>V2Ray Sub2JSON Worker</title>
         <style>
-          /* General Styles */
-          body {
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-            background-color: #f4f4f9;
-            color: #333;
+          :root {
+            --primary: #007bff;
+            --success: #28a745;
+            --gray: #6c757d;
+            --bg: #f4f4f9;
+            --text: #333;
+            --shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+          }
+          * {
+            box-sizing: border-box;
             margin: 0;
             padding: 0;
-            display: flex;
-            justify-content: center;
-            align-items: center;
+          }
+          body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: var(--bg);
+            color: var(--text);
             min-height: 100vh;
-          }
-      
-          .container {
-            background: #fff;
-            padding: 2rem;
-            border-radius: 12px;
-            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
-            max-width: 500px;
-            width: 90%;
-            text-align: center;
-          }
-      
-          a {
-            color: inherit;
-            text-decoration: none;
-          }
-      
-          a:hover {
-            text-decoration: underline; /* Subtle hover effect */
-          }
-      
-          h1 {
-            font-size: 1.8rem;
-            margin-bottom: 0;
-            color: #007bff;
-          }
-      
-          h2 {
-            font-size: 1.1rem;
-            margin-top: 0;
-            margin-bottom: 1.5rem;
-            color: #007bff;
-          }
-      
-          p {
-            font-size: 1rem;
-            margin-bottom: 1.5rem;
-            color: #555;
-          }
-      
-          .footnote {
-            font-size: 0.85rem;
-            color: #666;
-            margin-top: -0.5rem;
-            margin-bottom: 1rem;
-          }
-      
-          form {
             display: flex;
             flex-direction: column;
             align-items: center;
+            padding: 1rem;
           }
-      
+          .container {
+            background: #fff;
+            padding: 1.5rem;
+            border-radius: 12px;
+            box-shadow: var(--shadow);
+            width: 100%;
+            max-width: 600px;
+            text-align: center;
+          }
+          header {
+            margin-bottom: 1.5rem;
+          }
+          h1 {
+            font-size: 1.8rem;
+            color: var(--primary);
+            margin-bottom: 0.5rem;
+          }
+          h2 {
+            font-size: 1.1rem;
+            color: var(--primary);
+          }
+          h2 a {
+            color: inherit;
+            text-decoration: none;
+          }
+          h2 a:hover {
+            text-decoration: underline;
+          }
+          .instructions {
+            font-size: 1rem;
+            color: #555;
+            margin-bottom: 1rem;
+          }
+          .form-group {
+            margin-bottom: 1.5rem;
+          }
           textarea {
             width: 100%;
-            padding: 12px;
-            margin-bottom: 0.5rem;
+            min-height: 120px;
+            padding: 0.75rem;
             border: 1px solid #ddd;
             border-radius: 8px;
-            font-size: 1rem;
-            transition: border-color 0.3s ease;
+            font-size: 0.95rem;
             resize: vertical;
             direction: ltr;
+            transition: border-color 0.3s;
           }
-          
-          textarea::placeholder {
-            color: gray;
-            font-style: italic;
-            font-size: .7rem;
-          }
-      
           textarea:focus {
-            border-color: #ff7bff;
+            border-color: var(--primary);
             outline: none;
           }
-      
+          textarea::placeholder {
+            color: #aaa;
+            font-style: italic;
+          }
+          .footnote {
+            font-size: 0.85rem;
+            color: #666;
+            margin-top: 0.5rem;
+          }
           .button-container {
             display: flex;
+            gap: 0.75rem;
             justify-content: center;
-            gap: 10px;
-            width: 100%;
-          }
-      
-          input[type="button"],
-          input[type="submit"] {
-            padding: 12px 24px;
-            border: none;
-            border-radius: 8px;
-            font-size: 1rem;
-            cursor: pointer;
-            transition: background-color 0.3s ease, transform 0.2s ease;
-          }
-      
-          input[type="button"] {
-            background-color: #28a745;
-            color: white;
-          }
-      
-          input[type="button"]:hover {
-            background-color: #218838;
-            transform: translateY(-2px);
-          }
-      
-          input[type="submit"] {
-            background-color: #007bff;
-            color: white;
-          }
-      
-          input[type="submit"]:hover {
-            background-color: #0056b3;
-            transform: translateY(-2px);
-          }
-      
-          .lang-toggle {
-            position: absolute;
-            top: 20px;
-            right: 20px;
-            padding: 10px 20px;
-            border: none;
-            border-radius: 8px;
-            background-color: #6c757d;
-            color: white;
-            font-size: 1rem;
-            cursor: pointer;
-            transition: background-color 0.3s ease, transform 0.2s ease;
-          }
-      
-          .lang-toggle:hover {
-            background-color: #5a6268;
-            transform: translateY(-2px);
-          }
-      
-          html[dir="rtl"] .lang-toggle {
-            right: auto;
-            left: 20px;
-          }
-      
-          .footer {
-            font-size: 0.9rem;
-            color: #777;
+            flex-wrap: wrap;
             margin-top: 1.5rem;
           }
-      
-          @media (max-width: 600px) {
+          button, input[type="submit"] {
+            padding: 0.75rem 1rem;
+            border: none;
+            border-radius: 8px;
+            font-size: 1rem;
+            cursor: pointer;
+            transition: background-color 0.3s, transform 0.2s;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+          }
+          button.clear-btn {
+            background: var(--gray);
+            color: white;
+          }
+          button.clear-btn:hover {
+            background: #5a6268;
+          }
+          button.copy-btn {
+            background: var(--success);
+            color: white;
+          }
+          button.copy-btn:hover {
+            background: #218838;
+          }
+          input[type="submit"] {
+            background: var(--primary);
+            color: white;
+          }
+          input[type="submit"]:hover {
+            background: #0056b3;
+          }
+          button:hover, input[type="submit"]:hover {
+            transform: translateY(-2px);
+          }
+          .lang-toggle {
+            padding: 0.5rem 1rem;
+            background: var(--gray);
+            color: white;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: background-color 0.3s;
+            margin-bottom: 1rem;
+            margin-left: auto; /* Changed from margin-right: 0 to ensure right-alignment */
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+          }          
+          .lang-toggle:hover {
+            background: #5a6268;
+          }
+          /* Removed html[dir="ltr"] .lang-toggle to keep right-aligned */
+          .status {
+            margin-top: 1rem;
+            font-size: 0.9rem;
+            color: #555;
+            height: 1rem;
+          }
+          .status.success {
+            color: var(--success);
+          }
+          .status.error {
+            color: #dc3545;
+          }
+          footer {
+            margin-top: 2rem;
+            font-size: 0.9rem;
+            color: #777;
+          }
+          footer a {
+            color: inherit;
+            text-decoration: none;
+          }
+          footer a:hover {
+            text-decoration: underline;
+          }
+          @media (max-width: 480px) {
             .container {
-              padding: 1.5rem;
+              padding: 1rem;
             }
-      
             h1 {
               font-size: 1.5rem;
             }
-      
-            textarea,
-            input[type="button"],
-            input[type="submit"] {
-              font-size: 0.9rem;
+            h2 {
+              font-size: 1rem;
+            }
+            .lang-toggle {
+              position: static;
+              width: 100%;
+              max-width: 140px;
+              margin: 0 0 1rem auto; /* Right-aligned on mobile */
+            }
+            .button-container {
+              flex-direction: column;
+              gap: 0.5rem;
+            }
+            button, input[type="submit"] {
+              width: 100%;
+              padding: 0.65rem;
+              justify-content: center;
             }
           }
         </style>
       </head>
       <body>
-        <button class="lang-toggle" aria-label="Toggle Language" onclick="toggleLanguage()">English</button>
+        <button class="lang-toggle" aria-label="Toggle Language" onclick="toggleLanguage()">
+          <span aria-hidden="true" id="langEmoji">🌐</span>
+          <span id="langText">English</span>
+        </button>
         <div class="container">
-          <h1 id="title">V2Ray Sub2JSON Worker</h1>
-          <h2 id="subTitle">(تولید ساب جیسون برای <a href="https://github.com/XTLS/Xray-core" target="_blank">هسته XRAY</a>)</h2>
-          <p id="instruction">لینک اشتراک V2Ray خود را وارد کنید:</p>
-          <form action="${basePath}" method="GET">
-            <textarea 
-              name="sub" 
-              id="sub"  
-              rows="4" 
-              cols="50" 
-              placeholder="مثال: https://your-sub-url.com/v2ray.txt" 
-              required></textarea>
+          <header>
+            <h1 id="title">V2Ray Sub2JSON Worker</h1>
+            <h2 id="subTitle">(تولید ساب جیسون برای <a href="https://github.com/XTLS/Xray-core" target="_blank">هسته XRAY</a>)</h2>
+          </header>
+          <p class="instructions" id="instruction">لینک(های) اشتراک و یا کانفیگ(های) V2Ray خود را وارد کنید:</p>
+          <form class="form-group" action="${basePath}" method="GET">
+            <textarea name="sub" id="sub" placeholder="مثال: https://your-sub-url.com/v2ray.txt" required aria-label="Subscription Links"></textarea>
             <p class="footnote" id="footnote">(هر کدام در یک خط جداگانه)</p>
+            <p class="status" id="status"></p>
             <div class="button-container">
-              <input type="button" class="convert-input" value="تبدیل و کپی" onclick="copyToClipboard()" aria-label="Convert and Copy">
-              <input type="submit" class="submit-input" value="باز کردن" aria-label="Open">
+              <button type="button" class="clear-btn" onclick="clearTextarea()" aria-label="Clear Textarea"><span aria-hidden="true">🧽</span> <span id="clearText">پاک کردن</span></button>
+              <button type="button" class="copy-btn" onclick="copyToClipboard()" aria-label="Convert and Copy"><span aria-hidden="true">🔗</span> <span id="copyText">تبدیل و کپی</span></button>
+              <input type="submit" value="↗️ باز کردن" aria-label="Open JSON">
             </div>
           </form>
-          <div class="footer">
+          <footer>
             Source: <a href="https://github.com/mer30hamid/v2ray-sub2json-worker" target="_blank">GitHub Repository</a>
-          </div>
+          </footer>
         </div>
-      
         <script>
           const translations = {
             en: {
@@ -220,60 +241,84 @@ async function handleRequest(request) {
               subTitle: "(Generate JSON sub for <a href='https://github.com/XTLS/Xray-core' target='_blank'>XRAY core</a>)",
               instruction: "Enter your V2Ray subscription link(s) or config(s) below:",
               footnote: "(each on a separate line)",
-              convertButton: "Convert & Copy",
+              clearButton: "Clear",
+              copyButton: "Convert & Copy",
               submitButton: "Open",
+              langButton: "فارسی",
               placeholder: "e.g., https://your-sub-url.com/v2ray.txt",
               error: "Error! Please enter something!",
-              copied: "Converted URL copied to clipboard: "
+              copied: "Converted URL copied to clipboard: ",
+              cleared: "Textarea cleared",
+              copyFailed: "Failed to copy: "
             },
             fa: {
               title: "V2Ray Sub2JSON Worker",
               subTitle: "(تولید ساب جیسون برای <a href='https://github.com/XTLS/Xray-core' target='_blank'>هسته XRAY</a>)",
               instruction: "لینک(های) اشتراک و یا کانفیگ(های) V2Ray خود را وارد کنید:",
               footnote: "(هر کدام در یک خط جداگانه)",
-              convertButton: "تبدیل و کپی",
+              clearButton: "پاک کردن",
+              copyButton: "تبدیل و کپی",
               submitButton: "باز کردن",
+              langButton: "English",
               placeholder: "مثال: https://your-sub-url.com/v2ray.txt",
               error: "خطا! لطفا یک چیزی وارد کنید!",
-              copied: "لینک تبدیل شده در کلیپ‌بورد کپی شد: "
+              copied: "لینک تبدیل شده در کلیپ‌بورد کپی شد: ",
+              cleared: "متن پاک شد",
+              copyFailed: "کپی ناموفق: "
             }
           };
-      
-          let currentLang = 'fa'; // Default to Persian
-      
+
+          let currentLang = 'fa';
+
           function toggleLanguage() {
             currentLang = currentLang === 'en' ? 'fa' : 'en';
             updateLanguage();
           }
-      
+
           function updateLanguage() {
             document.getElementById('title').textContent = translations[currentLang].title;
             document.getElementById('subTitle').innerHTML = translations[currentLang].subTitle;
-            document.getElementById('instruction').innerHTML = translations[currentLang].instruction;
+            document.getElementById('instruction').textContent = translations[currentLang].instruction;
             document.getElementById('footnote').textContent = translations[currentLang].footnote;
-            document.querySelector('.convert-input').value = translations[currentLang].convertButton;
-            document.querySelector('.submit-input').value = translations[currentLang].submitButton;
+            document.getElementById('clearText').textContent = translations[currentLang].clearButton;
+            document.getElementById('copyText').textContent = translations[currentLang].copyButton;
+            document.querySelector('input[type="submit"]').value = '↗️ ' + translations[currentLang].submitButton;
             document.getElementById('sub').placeholder = translations[currentLang].placeholder;
-            document.querySelector('.lang-toggle').textContent = currentLang === 'en' ? 'فارسی' : 'English';
+            document.getElementById('langText').textContent = translations[currentLang].langButton;
+            document.getElementById('langEmoji').textContent = currentLang === 'en' ? '🇮🇷' : '🌐';
             document.documentElement.dir = currentLang === 'fa' ? 'rtl' : 'ltr';
+            document.documentElement.lang = currentLang;
           }
-      
+
           async function copyToClipboard() {
             const subInput = document.getElementById('sub');
-            if (!subInput.value) {
-              alert(translations[currentLang].error);
+            const status = document.getElementById('status');
+            if (!subInput.value.trim()) {
+              status.textContent = translations[currentLang].error;
+              status.className = 'status error';
               return;
             }
             const url = window.location.origin + "${basePath}?sub=" + encodeURIComponent(subInput.value);
             try {
               await navigator.clipboard.writeText(url);
-              alert(translations[currentLang].copied + url);
+              status.textContent = translations[currentLang].copied + url;
+              status.className = 'status success';
+              setTimeout(() => { status.textContent = ''; status.className = 'status'; }, 3000);
             } catch (err) {
-              alert("Failed to copy: " + err);
+              status.textContent = translations[currentLang].copyFailed + err;
+              status.className = 'status error';
             }
           }
-      
-          // Initialize page
+
+          function clearTextarea() {
+            const subInput = document.getElementById('sub');
+            const status = document.getElementById('status');
+            subInput.value = '';
+            status.textContent = translations[currentLang].cleared;
+            status.className = 'status success';
+            setTimeout(() => { status.textContent = ''; status.className = 'status'; }, 2000);
+          }
+
           updateLanguage();
         </script>
       </body>
@@ -455,7 +500,7 @@ function buildStreamSettings(params) {
     };
   }
 
-  
+
   if (security && !security.startsWith("none")) {
     streamSettings.security = security.startsWith("tls") ? "tls" : security;
     streamSettings.security = security.startsWith("reality") ? "reality" : security;
@@ -509,7 +554,7 @@ function isValidShadowsocksUrl4XRAY(uri) {
       [method, password] = auth.split(":");
     }
     if (!method || !password) return false;
-    
+
     /*
     const validMethods = [
       "aes-128-gcm", "aes-192-gcm", "aes-256-gcm",
@@ -532,7 +577,7 @@ function isValidShadowsocksUrl4XRAY(uri) {
     ];
 
     if (!supportedMethodsByXRAY.includes(method)) {
-    //if (!validMethods.includes(method)) {
+      //if (!validMethods.includes(method)) {
       //console.warn(`Unknown Shadowsocks method: ${method}`); // Optional warning
       return false;
     }

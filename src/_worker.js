@@ -633,7 +633,7 @@ function convertUriJson(uri, host = "127.0.0.1", httpPort = 10809, socksPort = 1
   }
 
   const isReality = params.security.startsWith("reality");
-  const isWs = network === "ws";
+  const isWs = ((network === "ws") || (network === "httpupgrade"));
   const isTcpOrGrpc = network === "tcp" || network === "grpc";
 
   if (!((isReality && (isVmess || isVless || isTrojan)) || isWs || isTcpOrGrpc || isShadowsocks)) return false;

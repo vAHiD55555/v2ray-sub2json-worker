@@ -40,7 +40,7 @@ https://v2ray-sub2json.mer30repl.workers.dev/convert
 
 
 
-![Screen Shot 2025-03-27 at 18 41 13](https://github.com/user-attachments/assets/0b5f317d-eb35-45f8-9a83-c4a243c51890)
+![Screen Shot 2025-03-27 at 20 08 38](https://github.com/user-attachments/assets/66ed7e8f-ce37-4a80-b32e-7c40d251a315)
 
 
 

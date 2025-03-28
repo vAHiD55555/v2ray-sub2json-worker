@@ -598,12 +598,13 @@ function convertUriJson(uri, host = "127.0.0.1", httpPort = 10809, socksPort = 1
   if (!uri) return false;
   uri = uri.replace("%2F", "/");
 
-  const isVless = uri.startsWith("vless://");
-  const isVmess = uri.startsWith("vmess://");
-  const isTrojan = uri.startsWith("trojan://");
-  const isShadowsocks = uri.startsWith("ss://");
+  const isVless = isValidUri(uri, isProxy = true, protocol = "vless");
+  const isVmess = isValidUri(uri, isProxy = true, protocol = "vmess");
+  const isTrojan = isValidUri(uri, isProxy = true, protocol = "trojan");
+  const isShadowsocks = isValidUri(uri, isProxy = true, protocol = "ss");
+  const isWireguard = isValidUri(uri, isProxy = true, protocol = "wireguard");
 
-  if (!isVless && !isVmess && !isTrojan && !isShadowsocks) return false;
+  if (!isVless && !isVmess && !isTrojan && !isShadowsocks && !isWireguard) return false;
 
   let params, network;
   if (isVmess) {
@@ -619,6 +620,8 @@ function convertUriJson(uri, host = "127.0.0.1", httpPort = 10809, socksPort = 1
     //if (!isValidUri(url)) return false;
     params = parseUriParams(shadowUri, isShadowsocks);
     network = params.type == "" ? "tcp" : params.type;
+  } else if (isWireguard) {
+    return false;
   } else {
     params = parseUriParams(uri);
     network = params.type;
@@ -714,17 +717,20 @@ console.log(isBase64("YWVzLTI1Ni1jZmI6YW1hem9uc2tyMDU")); // true (unpadded)
 console.log(isBase64("YWVzLTI1Ni1jZmI6YW1hem9uc2tyMDU=")); // true (padded)
 console.log(isBase64("invalid!")); // false
 
-function isValidUri(uri, isProxy = false) {
+function isValidUri(uri, isProxy = false, protocol = "none") {
   try {
     new URL(uri);
+    let protocolMatch = true;
+    if (protocol !== "none") protocolMatch = uri.startsWith(protocol + "://");
     if (isProxy) {
       const isVless = uri.startsWith("vless://");
       const isVmess = uri.startsWith("vmess://");
       const isTrojan = uri.startsWith("trojan://");
       const isShadowsocks = uri.startsWith("ss://");
-      return (isVless || isVmess || isTrojan || isShadowsocks);
+      const isWireguard = uri.startsWith("wireguard://");
+      return (isVless || isVmess || isTrojan || isShadowsocks || isWireguard) && protocolMatch;
     }
-    return true;
+    return protocolMatch;
   } catch (e) {
     return false;
   }

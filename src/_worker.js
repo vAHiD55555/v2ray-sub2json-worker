@@ -712,11 +712,6 @@ function isBase64(str) {
   }
 }
 
-// Test cases
-console.log(isBase64("YWVzLTI1Ni1jZmI6YW1hem9uc2tyMDU")); // true (unpadded)
-console.log(isBase64("YWVzLTI1Ni1jZmI6YW1hem9uc2tyMDU=")); // true (padded)
-console.log(isBase64("invalid!")); // false
-
 function isValidUri(uri, isProxy = false, protocol = "none") {
   try {
     new URL(uri);

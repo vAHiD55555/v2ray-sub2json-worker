@@ -5,6 +5,8 @@ async function handleRequest(request) {
   const homePath = "/convert"; // Define home path here
   const sub = url.searchParams.get("sub") || 'https://example.com/sub'; // subscription URL
 
+  const limit = url.searchParams.get("limit")?.split(",");
+
   if (url.pathname === homePath) {
     const html = `
       <!DOCTYPE html>
@@ -83,6 +85,7 @@ async function handleRequest(request) {
             resize: vertical;
             direction: ltr;
             transition: border-color 0.3s;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.1);
           }
           textarea:focus {
             border-color: var(--primary);
@@ -139,6 +142,71 @@ async function handleRequest(request) {
           button:hover, input[type="submit"]:hover {
             transform: translateY(-2px);
           }
+          .settings-limit {
+              width: 100%;
+              margin: 0 auto;
+              border: 1px solid #ddd;
+              border-radius: 6px;
+              overflow: hidden;
+              font-family: Tahoma, sans-serif;
+              box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+              font-size:.7rem;
+              margin-top:25px;
+          }
+          
+          .settings-limit summary {
+              padding: 12px 16px;
+              background: #f9f9f9;
+              cursor: pointer;
+              display: flex;
+              align-items: center;
+              list-style: none;
+              
+              color: #444;
+          }
+          
+          .settings-limit summary::-webkit-details-marker {
+              display: none;
+          }
+          
+          .settings-limit summary::before {
+              content: "⚙️";
+              margin-left: 8px;
+              font-size: 1.1em;
+          }
+          
+          .settings-limit[open] summary {
+              background: #f0f0f0;
+          }
+          
+          .settings-content {
+              padding: 0;
+              max-height: 0;
+              overflow: hidden;
+              transition: max-height 0.3s ease;
+              background: white;
+          }
+          
+          .settings-limit[open] .settings-content {
+              padding: 16px;
+              max-height: 500px;
+          }
+          
+          .settings-option {
+              display: flex;
+              align-items: center;
+              margin-bottom: 12px;
+          }
+          
+          .settings-option input[type="checkbox"] {
+              margin-left: 8px;
+          }
+          
+          .settings-option label {
+              cursor: pointer;
+              user-select: none;
+          }
+
           .lang-toggle {
             padding: 0.5rem 1rem;
             background: var(--gray);
@@ -223,6 +291,44 @@ async function handleRequest(request) {
           <form class="form-group" action="${basePath}" method="GET">
             <textarea name="sub" id="sub" placeholder="مثال: https://your-sub-url.com/v2ray.txt" required aria-label="Subscription Links"></textarea>
             <p class="footnote" id="footnote">(هر کدام در یک خط جداگانه)</p>
+
+            <details class="settings-limit">
+              <summary id="settingsLimitTitle">محدود کردن خروجی</summary>
+              <div class="settings-content">
+                <input type="hidden" id="limitValue">
+
+                <div class="settings-option">
+                  <input type="checkbox" id="limit1" value="vless" onchange="updateInclude()">
+                  <label for="limit1">پروتکل VLESS</label>
+                </div>
+
+                <div class="settings-option">
+                  <input type="checkbox" id="limit2" value="vmess" onchange="updateInclude()">
+                  <label for="limit2">پروتکل VMESS</label>
+                </div>
+
+                <div class="settings-option">
+                  <input type="checkbox" id="limit3" value="shadowsocks" onchange="updateInclude()">
+                  <label for="limit3">پروتکل Shadowsocks</label>
+                </div>
+
+                <div class="settings-option">
+                  <input type="checkbox" id="limit4" value="trojan" onchange="updateInclude()">
+                  <label for="limit4">پروتکل Trojan</label>
+                </div>
+
+                <div class="settings-option">
+                  <input type="checkbox" id="limit5" value="wireguard" onchange="updateInclude()">
+                  <label for="limit5">پروتکل Wireguard</label>
+                </div>
+
+                <div class="settings-option">
+                  <input type="checkbox" id="limit6" value="reality" onchange="updateInclude()">
+                  <label for="limit6">دارای تنظیم TLS از نوع Reality</label>
+                </div>
+              </div>
+            </details>
+
             <p class="status" id="status"></p>
             <div class="button-container">
               <button type="button" class="clear-btn" onclick="clearTextarea()" aria-label="Clear Textarea"><span aria-hidden="true">🧽</span> <span id="clearText">پاک کردن</span></button>
@@ -249,7 +355,8 @@ async function handleRequest(request) {
               error: "Error! Please enter something!",
               copied: "Converted URL copied to clipboard ✔",
               cleared: "Text cleared",
-              copyFailed: "Failed to copy: "
+              copyFailed: "Failed to copy: ",
+              settingsLimitTitle: "Limiting output",
             },
             fa: {
               title: "V2Ray Sub2JSON Worker",
@@ -264,7 +371,8 @@ async function handleRequest(request) {
               error: "خطا! لطفا یک چیزی وارد کنید!",
               copied: "لینک تبدیل شده در کلیپ‌بورد کپی شد ✔",
               cleared: "متن پاک شد",
-              copyFailed: "کپی ناموفق: "
+              copyFailed: "کپی ناموفق: ",
+              settingsLimitTitle: "محدود کردن خروجی",
             }
           };
 
@@ -285,6 +393,7 @@ async function handleRequest(request) {
             document.querySelector('input[type="submit"]').value = '↗️ ' + translations[currentLang].submitButton;
             document.getElementById('sub').placeholder = translations[currentLang].placeholder;
             document.getElementById('langText').textContent = translations[currentLang].langButton;
+            document.getElementById('settingsLimitTitle').textContent = translations[currentLang].settingsLimitTitle;
             document.getElementById('langEmoji').textContent = currentLang === 'en' ? '🇮🇷' : '🌐';
             document.documentElement.dir = currentLang === 'fa' ? 'rtl' : 'ltr';
             document.documentElement.lang = currentLang;
@@ -293,12 +402,14 @@ async function handleRequest(request) {
           async function copyToClipboard() {
             const subInput = document.getElementById('sub');
             const status = document.getElementById('status');
+            const limitValue = document.getElementById('limitValue');
+            console.log(limitValue.value);
             if (!subInput.value.trim()) {
               status.textContent = translations[currentLang].error;
               status.className = 'status error';
               return;
             }
-            const url = window.location.origin + "${basePath}?sub=" + encodeURIComponent(subInput.value);
+            const url = window.location.origin + "${basePath}?sub=" + encodeURIComponent(subInput.value) + (limitValue.name ? "&limit=" + limitValue.value : "");
             try {
               await navigator.clipboard.writeText(url);
               status.textContent = translations[currentLang].copied;
@@ -317,6 +428,14 @@ async function handleRequest(request) {
             status.textContent = translations[currentLang].cleared;
             status.className = 'status success';
             setTimeout(() => { status.textContent = ''; status.className = 'status'; }, 2000);
+          }
+
+          function updateInclude() {
+            const checkboxes = document.querySelectorAll('input[type="checkbox"]');
+            const checkedCheckboxes = document.querySelectorAll('input[type="checkbox"]:checked');
+            const values = Array.from(checkedCheckboxes).map(cb => cb.value).join(',');
+            document.getElementById('limitValue').name = checkedCheckboxes.length == checkboxes.length || checkedCheckboxes.length == 0 ? "" : "limit";
+            document.getElementById('limitValue').value = values;
           }
 
           updateLanguage();
@@ -360,7 +479,7 @@ async function handleRequest(request) {
   }
 
   try {
-    const result = await convert(data);
+    const result = await convert(data, limit);
     return new Response(JSON.stringify(result, null, 2), {
       status: 200,
       headers: { 'Content-Type': 'application/json' }
@@ -398,13 +517,21 @@ function parseUriParams(uri, isShadowsocks = false) {
   const url = new URL(uri);
   const params = new URLSearchParams(url.search);
   const getParam = (key, defaultValue = "") => params.get(key) || defaultValue;
+  const protocol = url.protocol.slice(0, -1);
+  const port = parseInt(url.port, 10);
+  const password =
+    protocol === "shadowsocks"
+      ? decodeURIComponent(url.password)
+      : decodeURIComponent(url.username);
+
   return {
-    protocol: url.protocol.slice(0, -1),
+    protocol,
     uid: url.username || url.pathname.split("@")[0],
-    password: isShadowsocks ? url.password : url.username,
-    method: isShadowsocks ? url.username : "chacha20",
-    address: url.hostname,
-    port: parseInt(url.port, 10),
+    password,
+    method: protocol === "shadowsocks" ? url.username : "chacha20",
+    address: protocol === "wireguard" ? [getParam("address")] : url.hostname,
+    endpoint: url.hostname + ":" + port,
+    port,
     type: getParam("type"),
     security: getParam("security"),
     sni: getParam("sni"),
@@ -417,7 +544,8 @@ function parseUriParams(uri, isShadowsocks = false) {
     path: getParam("path", "/"),
     headertype: getParam("headertype", "http"),
     serviceName: getParam("serviceName"),
-    alpn: getParam("alpn", "").split(",").filter(Boolean)
+    alpn: getParam("alpn", "").split(",").filter(Boolean),
+    publicKey: getParam("publickey")
   };
 }
 
@@ -459,7 +587,7 @@ function decodeBase64(str) {
 }
 // Helper to build stream settings
 function buildStreamSettings(params) {
-  const { type, security, sni, fp, host, path, headertype, serviceName, alpn, pbk, sid, spx } = params;
+  const { protocol, type, security, sni, fp, host, path, headertype, serviceName, alpn, pbk, sid, spx } = params;
   const streamSettings = { network: type == "" ? "tcp" : type };
 
   if (host && (type === "tcp" || type === "http")) {
@@ -500,34 +628,92 @@ function buildStreamSettings(params) {
     };
   }
 
-
-  if (security && !security.startsWith("none")) {
-    streamSettings.security = security.startsWith("tls") ? "tls" : security;
-    streamSettings.security = security.startsWith("reality") ? "reality" : security;
-    if (security === "reality") {
-      streamSettings.realitySettings = {
-        serverName: sni,
-        fingerprint: fp,
-        show: false,
-        publicKey: pbk,
-        shortId: sid || "",
-        spiderX: spx || ""
-      };
-    } else {
-      streamSettings.tlsSettings = {
-        allowInsecure: true,
-        serverName: sni,
-        alpn: alpn.length ? alpn : [],
-        show: false
-      };
-      if (fp && fp !== "none") streamSettings.tlsSettings.fingerprint = fp;
-    }
+  if (security.startsWith("tls")) {
+    streamSettings.security = "tls";
+    streamSettings.tlsSettings = {
+      allowInsecure: true,
+      serverName: sni,
+      alpn: alpn.length ? alpn : [],
+      show: false
+    };
+    if (fp && fp !== "none") streamSettings.tlsSettings.fingerprint = fp;
+  } else if (security.startsWith("reality")) {
+    streamSettings.security = "reality";
+    streamSettings.realitySettings = {
+      serverName: sni,
+      fingerprint: fp,
+      show: false,
+      publicKey: pbk,
+      shortId: sid || "",
+      spiderX: spx || ""
+    };
   } else {
     streamSettings.security = "none";
   }
-
   return streamSettings;
 }
+
+// Helper to build settings
+function buildSettings(params) {
+  //const { address, protocol, password, method, security, sni, fp, host, path, headertype, serviceName, alpn, pbk, sid, spx } = params;
+  const { protocol, uid, password, address, port, flow, method, publicKey, endpoint } = params;
+  let settings = {};
+
+  if (protocol === "trojan") {
+    settings = {
+      servers: [{
+        address,
+        port,
+        password,
+        level: 1
+      }]
+    }
+  } else if (protocol === "shadowsocks") {
+    settings = {
+      servers: [
+        {
+          address,
+          port,
+          method,
+          password,
+          uot: true,
+          UoTVersion: 2,
+          level: 1
+        }
+      ]
+    }
+  } else if (protocol === "wireguard") {
+    settings = {
+      secretKey: password,
+      address,
+      peers: [
+        {
+          publicKey,
+          allowedIPs: ["0.0.0.0/0", "::/0"],
+          endpoint
+        }
+      ],
+      mtu: 1280
+    }
+  } else {
+    settings = {
+      vnext: [{
+        address,
+        port,
+        users: [{
+          id: uid,
+          alterId: 0,
+          email: "t@t.tt",
+          security: "auto",
+          encryption: protocol === "vless" ? "none" : undefined,
+          flow: flow.startsWith("xtls") ? flow : ""
+        }]
+      }]
+    }
+  }
+  return settings;
+}
+
 
 
 function isValidShadowsocksUrl4XRAY(uri) {
@@ -594,15 +780,15 @@ function isValidShadowsocksUrl4XRAY(uri) {
 }
 
 // Main conversion function
-function convertUriJson(uri, host = "127.0.0.1", httpPort = 10809, socksPort = 10808) {
+function convertUriJson(uri, limit, host = "127.0.0.1", httpPort = 10809, socksPort = 10808) {
   if (!uri) return false;
   uri = uri.replace("%2F", "/");
 
-  const isVless = isValidUri(uri, isProxy = true, protocol = "vless");
-  const isVmess = isValidUri(uri, isProxy = true, protocol = "vmess");
-  const isTrojan = isValidUri(uri, isProxy = true, protocol = "trojan");
-  const isShadowsocks = isValidUri(uri, isProxy = true, protocol = "ss");
-  const isWireguard = isValidUri(uri, isProxy = true, protocol = "wireguard");
+  const isVless = isValidUri(uri, isProxy = true, "vless");
+  const isVmess = isValidUri(uri, isProxy = true, "vmess");
+  const isTrojan = isValidUri(uri, isProxy = true, "trojan");
+  const isShadowsocks = isValidUri(uri, isProxy = true, "ss");
+  const isWireguard = isValidUri(uri, isProxy = true, "wireguard");
 
   if (!isVless && !isVmess && !isTrojan && !isShadowsocks && !isWireguard) return false;
 
@@ -621,13 +807,14 @@ function convertUriJson(uri, host = "127.0.0.1", httpPort = 10809, socksPort = 1
     params = parseUriParams(shadowUri, isShadowsocks);
     network = params.type == "" ? "tcp" : params.type;
   } else if (isWireguard) {
-    return false;
+    params = parseUriParams(uri);
+    network = params.type;
   } else {
     params = parseUriParams(uri);
     network = params.type;
   }
 
-  const { protocol, uid, password, address, port, flow, method } = params;
+  const { protocol, port } = params;
 
   // Validate and ensure port is an integer
   if (isNaN(port) || port < 1 || port > 65535) {
@@ -639,46 +826,59 @@ function convertUriJson(uri, host = "127.0.0.1", httpPort = 10809, socksPort = 1
   const isWs = ((network === "ws") || (network === "httpupgrade"));
   const isTcpOrGrpc = network === "tcp" || network === "grpc";
 
-  if (!((isReality && (isVmess || isVless || isTrojan)) || isWs || isTcpOrGrpc || isShadowsocks)) return false;
 
-  const config = {
-    log: { access: "", error: "", loglevel: "warning" },
-    outbounds: [
-      {
-        tag: "proxy",
-        protocol,
-        settings: isTrojan || isShadowsocks
-          ? {
-            servers: [{
-              address,
-              method,
-              ota: false,
-              password,
-              port,
-              level: 1,
-              flow: flow || ""
-            }]
-          }
-          : {
-            vnext: [{
-              address,
-              port,
-              users: [{
-                id: uid,
-                alterId: 0,
-                email: "t@t.tt",
-                security: "auto",
-                encryption: isVless ? "none" : undefined,
-                flow: flow || ""
-              }]
-            }]
-          },
-        streamSettings: buildStreamSettings(params, isVmess),
-        mux: { enabled: false, concurrency: -1 }
-      },
-      ...BASE_OUTBOUNDS
-    ]
-  };
+
+  if (!((isReality && (isVmess || isVless || isTrojan)) || isWs || isTcpOrGrpc || isShadowsocks || isWireguard)) return false;
+
+  /* set limits */
+  if (limit) {
+    if (isVless && !limit.includes("vless")) return false;
+    if (isVmess && !limit.includes("vmess")) return false;
+    if (isShadowsocks && !limit.includes("shadowsocks")) return false;
+    if (isTrojan && !limit.includes("trojan")) return false;
+    if (isWireguard && !limit.includes("wireguard")) return false;
+    if (isReality && !limit.includes("reality")) return false;
+  }
+
+
+  let config = {};
+
+
+  if (protocol === "wireguard") {
+    config = {
+      log: { access: "", error: "", loglevel: "warning" },
+      outbounds: [
+        {
+          tag: "proxy",
+          protocol,
+          noKernelTun: false,
+          settings: buildSettings(params),
+
+          // The Wireguard protocol is not currently supported in the outbound protocol. streamSettings:
+          // https://xtls.github.io/en/config/outbounds/wireguard.html#outboundconfigurationobject
+          // But it can be used for chaining:
+          // https://xtls.github.io/en/document/level-2/warp.html#using-warp-chain-proxy-on-the-client-side
+          // streamSettings: buildStreamSettings(params)
+        },
+        ...BASE_OUTBOUNDS
+      ]
+    };
+  } else {
+    config = {
+      log: { access: "", error: "", loglevel: "warning" },
+      outbounds: [
+        {
+          tag: "proxy",
+          protocol,
+          settings: buildSettings(params),
+          streamSettings: buildStreamSettings(params),
+          mux: { enabled: false, concurrency: -1 }
+        },
+        ...BASE_OUTBOUNDS
+      ]
+    };
+  }
+
 
   Object.assign(config, generateInbounds(host, httpPort, socksPort));
   return JSON.stringify(config, null, 2);
@@ -731,14 +931,14 @@ function isValidUri(uri, isProxy = false, protocol = "none") {
   }
 }
 
-async function convert(data) {
+async function convert(data, limit) {
   const baseConfig = JSON.parse(JSON.stringify(configTemplate));
   const processedProxies = [];
   let proxyCount = 0;
 
   for (const config of data.split('\n')) {
-    if (isValidUri(config, isProxy = true)) {
-      const result = convertUriJson(config);
+    if (isValidUri(config, true)) {
+      const result = convertUriJson(config, limit);
       if (!result) continue;
 
       let convertedConfig;

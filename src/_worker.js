@@ -172,6 +172,7 @@ async function handleRequest(request) {
           .settings-limit summary::before {
               content: "⚙️";
               margin-left: 8px;
+              margin-right: 8px;
               font-size: 1.1em;
           }
           
@@ -200,6 +201,7 @@ async function handleRequest(request) {
           
           .settings-option input[type="checkbox"] {
               margin-left: 8px;
+              margin-right: 8px;
           }
           
           .settings-option label {
@@ -278,11 +280,12 @@ async function handleRequest(request) {
         </style>
       </head>
       <body>
+        <div class="container">
         <button class="lang-toggle" aria-label="Toggle Language" onclick="toggleLanguage()">
           <span aria-hidden="true" id="langEmoji">🌐</span>
           <span id="langText">English</span>
         </button>
-        <div class="container">
+
           <header>
             <h1 id="title">V2Ray Sub2JSON Worker</h1>
             <h2 id="subTitle">(تولید ساب جیسون برای <a href="https://github.com/XTLS/Xray-core" target="_blank">هسته XRAY</a>)</h2>
@@ -298,33 +301,33 @@ async function handleRequest(request) {
                 <input type="hidden" id="limitValue">
 
                 <div class="settings-option">
-                  <input type="checkbox" id="limit1" value="vless" onchange="updateInclude()">
-                  <label for="limit1">پروتکل VLESS</label>
+                  <input type="checkbox" id="settingsLimitVless" value="vless" onchange="updateInclude()">
+                  <label for="settingsLimitVless" id="settingsLimitVlessLabel">پروتکل VLESS</label>
                 </div>
 
                 <div class="settings-option">
-                  <input type="checkbox" id="limit2" value="vmess" onchange="updateInclude()">
-                  <label for="limit2">پروتکل VMESS</label>
+                  <input type="checkbox" id="settingsLimitVmess" value="vmess" onchange="updateInclude()">
+                  <label for="settingsLimitVmess" id="settingsLimitVmessLabel">پروتکل VMESS</label>
                 </div>
 
                 <div class="settings-option">
-                  <input type="checkbox" id="limit3" value="shadowsocks" onchange="updateInclude()">
-                  <label for="limit3">پروتکل Shadowsocks</label>
+                  <input type="checkbox" id="settingsLimitShadowsocks" value="shadowsocks" onchange="updateInclude()">
+                  <label for="settingsLimitShadowsocks" id="settingsLimitShadowsocksLabel">پروتکل Shadowsocks</label>
                 </div>
 
                 <div class="settings-option">
-                  <input type="checkbox" id="limit4" value="trojan" onchange="updateInclude()">
-                  <label for="limit4">پروتکل Trojan</label>
+                  <input type="checkbox" id="settingsLimitTrojan" value="trojan" onchange="updateInclude()">
+                  <label for="settingsLimitTrojan" id="settingsLimitTrojanLabel">پروتکل Trojan</label>
                 </div>
 
                 <div class="settings-option">
-                  <input type="checkbox" id="limit5" value="wireguard" onchange="updateInclude()">
-                  <label for="limit5">پروتکل Wireguard</label>
+                  <input type="checkbox" id="settingsLimitWireguard" value="wireguard" onchange="updateInclude()">
+                  <label for="settingsLimitWireguard" id="settingsLimitWireguardLabel">پروتکل Wireguard</label>
                 </div>
 
                 <div class="settings-option">
-                  <input type="checkbox" id="limit6" value="reality" onchange="updateInclude()">
-                  <label for="limit6">دارای تنظیم TLS از نوع Reality</label>
+                  <input type="checkbox" id="settingsLimitReality" value="reality" onchange="updateInclude()">
+                  <label for="settingsLimitReality" id="settingsLimitRealityLabel">دارای تنظیم TLS از نوع Reality</label>
                 </div>
               </div>
             </details>
@@ -357,6 +360,12 @@ async function handleRequest(request) {
               cleared: "Text cleared",
               copyFailed: "Failed to copy: ",
               settingsLimitTitle: "Limiting output",
+              settingsLimitVlessLabel: "Vless protocol",
+              settingsLimitVmessLabel: "Vmess protocol",
+              settingsLimitShadowsocksLabel: "Shadowsocks protocol",
+              settingsLimitTrojanLabel: "Trojan protocol",
+              settingsLimitWireguardLabel: "Wireguard protocol",
+              settingsLimitRealityLabel: "Has Reality TLS setting"
             },
             fa: {
               title: "V2Ray Sub2JSON Worker",
@@ -373,6 +382,12 @@ async function handleRequest(request) {
               cleared: "متن پاک شد",
               copyFailed: "کپی ناموفق: ",
               settingsLimitTitle: "محدود کردن خروجی",
+              settingsLimitVlessLabel: "پروتکل Vless",
+              settingsLimitVmessLabel: "پروتکل Vmess",
+              settingsLimitShadowsocksLabel: "پروتکل Shadowsocks",
+              settingsLimitTrojanLabel: "پروتکل Trojan",
+              settingsLimitWireguardLabel: "پروتکل Wireguard",
+              settingsLimitRealityLabel: "دارای تنظیم TLS از نوع Reality"
             }
           };
 
@@ -394,6 +409,12 @@ async function handleRequest(request) {
             document.getElementById('sub').placeholder = translations[currentLang].placeholder;
             document.getElementById('langText').textContent = translations[currentLang].langButton;
             document.getElementById('settingsLimitTitle').textContent = translations[currentLang].settingsLimitTitle;
+            document.getElementById('settingsLimitVlessLabel').textContent = translations[currentLang].settingsLimitVlessLabel;
+            document.getElementById('settingsLimitVmessLabel').textContent = translations[currentLang].settingsLimitVmessLabel;
+            document.getElementById('settingsLimitShadowsocksLabel').textContent = translations[currentLang].settingsLimitShadowsocksLabel;
+            document.getElementById('settingsLimitTrojanLabel').textContent = translations[currentLang].settingsLimitTrojanLabel;
+            document.getElementById('settingsLimitWireguardLabel').textContent = translations[currentLang].settingsLimitWireguardLabel;
+            document.getElementById('settingsLimitRealityLabel').textContent = translations[currentLang].settingsLimitRealityLabel;
             document.getElementById('langEmoji').textContent = currentLang === 'en' ? '🇮🇷' : '🌐';
             document.documentElement.dir = currentLang === 'fa' ? 'rtl' : 'ltr';
             document.documentElement.lang = currentLang;
